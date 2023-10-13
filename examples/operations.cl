@@ -10,21 +10,32 @@
 
 #define MODULUS_P 17 // 一个大质数，可以根据需要更改
 
-KERNEL void add(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
+__device__ void device_add(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
     for (uint i = 0; i < num; i++) {
       result[i] = a[i] + b[i];
     }
 }
+
+
+KERNEL void add(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
+    device_add(num, a ,b,result);
+}
+
+
 KERNEL void subtract(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
     for (uint i = 0; i < num; i++) {
         result[i] = a[i] - b[i];
     }
 }
 
-KERNEL void multiply(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
+__device__ void device_multiply(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
     for (uint i = 0; i < num; i++) {
         result[i] = a[i] * b[i];
     }
+}
+
+KERNEL void multiply(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
+    device_multiply(num,a,b,result);
 }
 
 KERNEL void divide(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *result) {
@@ -79,8 +90,6 @@ __device__ void extended_gcd(uint a, uint b, int* lastx, int* lasty) {
 __device__ uint mod_inverse(uint a, int p) {
     int x, y;
     extended_gcd(a, p, &x, &y);
-
-
     
     return (x % p + p) % p;
 }
@@ -95,4 +104,14 @@ KERNEL void divide_field(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *
             result[i] = 0;  // Division by zero yields zero
         }
     }
+}
+
+KERNEL void combined_operation(uint num, GLOBAL uint *a, GLOBAL uint *b, GLOBAL uint *c, GLOBAL uint *result) {
+
+    uint temp[4];
+
+    device_add(num, a, b, temp);
+    device_multiply(num, temp, c ,result);
+
+
 }
